@@ -17,11 +17,15 @@
     "autoprefixer": "10.4.15",
     "bcrypt": "^5.1.1",
     "clsx": "^2.0.0",
+    "d3": "^7.9.0",
     "next": "^14.0.2",
     "next-auth": "^5.0.0-beta.17",
     "postcss": "8.4.31",
     "react": "18.2.0",
+    "react-chrono": "^2.6.1",
     "react-dom": "18.2.0",
+    "react-svg-timeline": "^0.24.2",
+    "react-vis-timeline": "^2.0.3",
     "tailwindcss": "3.3.3",
     "typescript": "5.2.2",
     "use-debounce": "^10.0.0",
@@ -29,6 +33,7 @@
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.1",
+    "@types/d3": "^7.4.3",
     "@types/react": "18.2.21",
     "@types/react-dom": "18.2.14",
     "@vercel/style-guide": "^5.0.1",
@@ -41,5 +46,14 @@
   },
   "engines": {
     "node": ">=18.17.0"
+  },
+  "overrides": {
+    "react-vis-timeline": {
+      "react": "$react",
+      "react-dom": "$react-dom",
+      "vis-data": "^7.1.0",
+      "vis-timeline": "^7.4.2",
+      "vis-util": "^4.3.4"
+    }
   }
 }

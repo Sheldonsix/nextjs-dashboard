@@ -19,16 +19,48 @@ const FormSchema = z.object({
         invalid_type_error: 'Please select an invoice status.'
     }),
     date: z.string()
+});
+
+const MovieFormSchema = z.object({
+    id: z.string(),
+    name: z.string({
+        invalid_type_error:'Please input a movie name.'
+    }),
+    star: z.coerce.number().gt(0, {
+        message: 'Please enter a number greater than 0.'
+    }),
+    douban_url: z.string({
+        invalid_type_error: 'Please input a douban url.'
+    }),
+    image_url: z.string({
+        invalid_type_error: 'Please input a image url.'
+    })
 })
 
 const CreateInvoice = FormSchema.omit({id:true, date:true});
 const UpdateInvoice = FormSchema.omit({id: true, date: true});
+
+
+const CreateMovie = MovieFormSchema.omit({id:true})
+const UpdateMovie = MovieFormSchema.omit({id:true, name:true})
 
 export type State = {
     errors?: {
         customerId?: string[];
         amount?: string[];
         status?: string[];
+        star?: string[];
+        douban_url?: string[];
+    };
+    message?: string | null;
+}
+
+export type MovieState = {
+    errors?: {
+        star?: string[];
+        douban_url?: string[];
+        name?: string[];
+        image_url?: string[];
     };
     message?: string | null;
 }
@@ -66,6 +98,42 @@ export async function createInvoice(prevState: State, formData:FormData) {
     redirect('/dashboard/invoices');
 }
 
+export async function createMovie(prevState: MovieState, formData:FormData) {
+    
+    console.log(formData)
+    const validatedFields  = CreateMovie.safeParse({
+        name: formData.get('movieName'),
+        douban_url: formData.get('douban-url'),
+        star: formData.get('movie-star'),
+        image_url: formData.get('image-url'),
+    });
+    console.log(validatedFields)
+    if(!validatedFields.success) {
+        return {
+            errors: validatedFields.error.flatten().fieldErrors,
+            message: 'Missing Fields. Failed to Create Movie.'
+        }
+    }
+
+    const {name, douban_url, star, image_url} = validatedFields.data;
+
+    const proxy_image_url = `https://images.weserv.nl/?url=${image_url}`;
+
+    try {
+        await sql`
+            INSERT INTO movies (name, douban_url, star, image_url)
+            VALUES (${name}, ${douban_url}, ${star}, ${image_url})
+            `;
+    } catch (error) {
+        return {
+            message: 'Databash Error: Failed to Create Movie.'
+        }
+    }
+
+    revalidatePath('/dashboard/movies');
+    redirect('/dashboard/movies');
+}
+
 export async function updateInvoice( id:string, prevState: State, formData:FormData) {
     const validatedFields = UpdateInvoice.safeParse({
         customerId: formData.get('customerId'),
@@ -100,6 +168,38 @@ export async function updateInvoice( id:string, prevState: State, formData:FormD
     redirect('/dashboard/invoices');
 }
 
+export async function updateMovie( id:string, prevState: MovieState, formData:FormData) {
+    const validatedFields = UpdateMovie.safeParse({
+        douban_url: formData.get('douban-url'),
+        star: formData.get('movie-star'),
+        image_url: formData.get('image-url')
+    });
+    if(!validatedFields.success) {
+        return {
+            errors: validatedFields.error.flatten().fieldErrors,
+            message: 'Missing Fields. Failed to Update Movie.'
+        }
+    }
+
+    const { douban_url, star, image_url} = validatedFields.data;
+
+    try {
+        await sql`
+            UPDATE movies
+            SET douban_url = ${douban_url}, star = ${star}, image_url = ${image_url}
+            WHERE id = ${id}
+        `;
+    } catch (error) {
+        return {
+            message: 'Databash Error: Failed to Update Movie.'
+        }
+    }
+    
+
+    revalidatePath('/dashboard/movies');
+    redirect('/dashboard/movies');
+}
+
 export async function deleteInvoice(id:string) {
     throw new Error('Failed to Delete Invoice')
     try {
@@ -109,6 +209,19 @@ export async function deleteInvoice(id:string) {
     } catch (error) {
         return {
             message: 'Databash Error: Failed to Delete Invoice.'
+        }
+    }
+    
+}
+export async function deleteMovie(id:string) {
+    // throw new Error('Failed to Delete Movie')
+    try {
+        await sql`DELETE FROM movies WHERE id = ${id}`;
+        revalidatePath('/dashboard/movies');
+        return {message: 'Deleted movie.'}
+    } catch (error) {
+        return {
+            message: 'Databash Error: Failed to Delete movie.'
         }
     }
     

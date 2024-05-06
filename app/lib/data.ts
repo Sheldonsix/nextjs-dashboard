@@ -7,6 +7,7 @@ import {
   LatestInvoiceRaw,
   User,
   Revenue,
+  MoviesTable,
 } from './definitions';
 import { formatCurrency } from './utils';
 import { unstable_noStore as noStore } from 'next/cache';
@@ -128,6 +129,35 @@ export async function fetchFilteredInvoices(
   }
 }
 
+export async function fetchFilteredMovies(
+  query: string,
+  currentPage: number,
+) {
+  noStore();
+  const offset = (currentPage - 1) * ITEMS_PER_PAGE;
+
+  try {
+    const movies = await sql<MoviesTable>`
+      SELECT
+        movies.id,
+        movies.name,
+        movies.douban_url,
+        movies.image_url,
+        movies.star
+      FROM movies
+      WHERE
+        movies.name ILIKE ${`%${query}%`} 
+      ORDER BY movies.star DESC
+      LIMIT ${ITEMS_PER_PAGE} OFFSET ${offset}
+    `;
+
+    return movies.rows;
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch movies.');
+  }
+}
+
 export async function fetchInvoicesPages(query: string) {
   noStore();
   try {
@@ -147,6 +177,23 @@ export async function fetchInvoicesPages(query: string) {
   } catch (error) {
     console.error('Database Error:', error);
     throw new Error('Failed to fetch total number of invoices.');
+  }
+}
+
+export async function fetchMoviesPages(query: string) {
+  noStore();
+  try {
+    const count = await sql`SELECT COUNT(*)
+    FROM movies
+    WHERE
+      movies.name ILIKE ${`%${query}%`}
+  `;
+
+    const totalPages = Math.ceil(Number(count.rows[0].count) / ITEMS_PER_PAGE);
+    return totalPages;
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch total number of movies.');
   }
 }
 
@@ -176,6 +223,30 @@ export async function fetchInvoiceById(id: string) {
   }
 }
 
+export async function fetchMovieById(id: string) {
+  noStore();
+  try {
+    const data = await sql<MoviesTable>`
+      SELECT
+        movies.id,
+        movies.name,
+        movies.douban_url,
+        movies.star,
+        movies.image_url
+      FROM movies
+      WHERE movies.id = ${id};
+    `;
+
+    const movie = data.rows.map((movie) => ({
+      ...movie,
+    }));
+    return movie[0];
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch movie.');
+  }
+}
+
 export async function fetchCustomers() {
   noStore();
   try {
@@ -192,6 +263,28 @@ export async function fetchCustomers() {
   } catch (err) {
     console.error('Database Error:', err);
     throw new Error('Failed to fetch all customers.');
+  }
+}
+
+export async function fetchMovies() {
+  noStore();
+  try {
+    const data = await sql<MoviesTable>`
+      SELECT
+        id,
+        name,
+        douban_url,
+        image_url,
+        star
+      FROM movies
+      ORDER BY star DESC
+    `;
+
+    const movies = data.rows;
+    return movies;
+  } catch (err) {
+    console.error('Database Error:', err);
+    throw new Error('Failed to fetch all movies.');
   }
 }
 

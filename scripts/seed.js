@@ -4,6 +4,7 @@ const {
   customers,
   revenue,
   users,
+  movies
 } = require('../app/lib/placeholder-data.js');
 const bcrypt = require('bcrypt');
 
@@ -125,6 +126,46 @@ async function seedCustomers(client) {
   }
 }
 
+async function seedMovies(client) {
+  try {
+    await client.sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
+
+    // Create the "movies" table if it doesn't exist
+    const createTable = await client.sql`
+      CREATE TABLE IF NOT EXISTS movies (
+        id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        douban_url VARCHAR(255) NOT NULL,
+        image_url VARCHAR(255) NOT NULL,
+        star VARCHAR(255) NOT NULL
+      );
+    `;
+
+    console.log(`Created "movies" table`);
+
+    // Insert data into the "customers" table
+    const insertedMovies = await Promise.all(
+      movies.map(
+        (movie) => client.sql`
+        INSERT INTO movies (id, name, douban_url, image_url, star)
+        VALUES (${movie.id}, ${movie.name}, ${movie.douban_url}, ${movie.image_url}, ${movie.star})
+        ON CONFLICT (id) DO NOTHING;
+      `,
+      ),
+    );
+
+    console.log(`Seeded ${insertedMovies.length} movies`);
+
+    return {
+      createTable,
+      movies: insertedMovies,
+    };
+  } catch (error) {
+    console.error('Error seeding movies:', error);
+    throw error;
+  }
+}
+
 async function seedRevenue(client) {
   try {
     // Create the "revenue" table if it doesn't exist
@@ -163,10 +204,11 @@ async function seedRevenue(client) {
 async function main() {
   const client = await db.connect();
 
-  await seedUsers(client);
-  await seedCustomers(client);
-  await seedInvoices(client);
-  await seedRevenue(client);
+  // await seedUsers(client);
+  // await seedCustomers(client);
+  // await seedInvoices(client);
+  // await seedRevenue(client);
+  await seedMovies(client)
 
   await client.end();
 }

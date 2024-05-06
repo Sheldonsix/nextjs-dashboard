@@ -9,6 +9,23 @@ const users = [
   },
 ];
 
+const movies = [
+  {
+    id: '04368507-59c8-4a8d-a27c-84a2303d1971',
+    name: '肖申克的救赎 The Shawshank Redemption',
+    star: '9.6',
+    douban_url: 'https://movie.douban.com/subject/1292052/',
+    image_url: '/movies/the-shawshank-redemption.png',
+  },
+  {
+    id: '64363bb3-3f7d-4ec3-b2fa-a1e6b85480a3',
+    name: '霸王别姬',
+    star: '9.5',
+    douban_url: 'https://movie.douban.com/subject/1291546/',
+    image_url: '/movies/farewell-my-concubine.png',
+  },
+]
+
 const customers = [
   {
     id: '3958dc9e-712f-4377-85e9-fec4b6a6442a',
@@ -185,4 +202,5 @@ module.exports = {
   customers,
   invoices,
   revenue,
+  movies
 };

@@ -16,6 +16,14 @@ export type Customer = {
   image_url: string;
 };
 
+export type Movie = {
+  id: string;
+  name: string;
+  douban_ur: string;
+  image_url: string;
+  star: string;
+}
+
 export type Invoice = {
   id: string;
   customer_id: string;
@@ -53,6 +61,14 @@ export type InvoicesTable = {
   date: string;
   amount: number;
   status: 'pending' | 'paid';
+};
+
+export type MoviesTable = {
+  id: string;
+  douban_url: string;
+  image_url: string;
+  name: string;
+  star: string;
 };
 
 export type CustomersTableType = {
